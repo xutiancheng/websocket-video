@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+    <script src="http://127.0.0.1:8080/socket.io.js"></script>
+</head>
+<body>
+ 
+	<video id="video" width="0" height="0" autoplay></video>
+
+    <canvas id="canvas" style="display:none"></canvas>
+    <canvas id="show-canvas" ></canvas>
+	<script type="text/javascript">
+        var webSocket = new WebSocket('ws://172.17.122.146:8080/a/b/3');  
+        webSocket.onerror = function(event) {  
+            alert(event.data);  
+        };  
+        //与WebSocket建立连接  
+        webSocket.onopen = function(event) {  
+            //document.getElementById('messages').innerHTML = '与服务器端建立连接';  
+        };  
+
+        //处理服务器返回的信息  
+        webSocket.onmessage = function(event) { 
+        console.log(event.data); 
+                var bytearray = new Uint8Array(event.data);  
+
+                var imgdata = context2.getImageData(0,0,320,240);  
+                var imgdatalen = imgdata.data.length;  
+                for(var i=8;i<imgdatalen;i++){  
+                    imgdata.data[i] = bytearray[i];  
+                }  
+                context2.putImageData(imgdata,0,0); 
+
+        }; 
+
+        // function start() {  
+        //     //向服务器发送请求  
+        //     webSocket.send('我是jCuckoo');  
+        // } 
+
+    //var c = io.connect('ws://127.0.0.1:3000');
+
+    var img = document.getElementById('j-img');
+	var video = document.getElementById('video');
+	navigator.myGetUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia;
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.myGetUserMedia({ video: true },function(localMediaStream){
+        /*并不是每个window都有URL对象,要加上浏览器前缀
+        **video.src=window.URL.createObjectURL(localMediaStream);
+        * */
+        window.URL=window.URL||window.webkitURL||window.mozURL||window.msURL;
+        video.src=window.URL.createObjectURL(localMediaStream);
+        video.play();
+    },function(error){});
+
+
+    var canvasObj = document.getElementById('canvas');
+
+    	canvasObj.width = 1000;
+    	canvasObj.height = 400;
+
+	var context1 = canvasObj.getContext('2d');
+
+    var showCanvas = document.getElementById('show-canvas');
+
+        showCanvas.width = 1000;
+        showCanvas.height = 400;
+
+    var context2 = showCanvas.getContext('2d');
+
+
+    //var imgData=context2.createImageData(320,240);
+
+
+    setInterval(function(){scamera();},50000)
+    
+    function scamera() {
+
+        var videoElement = document.getElementById('video');
+ 
+        context1.drawImage(videoElement, 0, 0, 320, 240);
+
+         var data = context1.getImageData(0, 0, 50, 50).data;
+         
+		webSocket.send(data);
+        // for(var i = 0; i < data.length; i += 4) {
+        //           imgData.data[i]=data[i];
+        //           imgData.data[i+1]=data[i+1];
+        //           imgData.data[i+2]=data[i+2];
+        //           imgData.data[i+3]=data[i+3];
+        //       }
+
+
+        // context2.putImageData(imgData, 0, 0);        
+        // console.log(data);
+        //         c.emit('message', {data:data})
+        }
+
+ // c.on('message', function(obj){
+ //    console.log(obj.data)
+ //    for(var i = 0; i < obj.data.length; i += 4) {
+ //              imgData.data[i]=obj.data[i];
+ //              imgData.data[i+1]=obj.data[i+1];
+ //              imgData.data[i+2]=obj.data[i+2];
+ //              imgData.data[i+3]=obj.data[i+3];
+ //          }
+
+
+ //    context2.putImageData(imgData, 0, 0);  
+ //    console.log(333)
+
+ //    });
+
+
+	// for(var i = 0; i < data.length; i += 4) {
+	//           imgData.data[i]=data[i];
+	//           imgData.data[i+1]=data[i+1];
+	//           imgData.data[i+2]=data[i+2];
+	//           imgData.data[i+3]=data[i+3];
+	//       }
+
+
+	//       context2.putImageData(imgData, 0, 0);
+
+	</script>
+</body>
+</html>

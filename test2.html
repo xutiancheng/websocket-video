@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">     
+<head>      
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">      
+<title>Insert title here</title>      
+</head>      
+    
+<body onload="startServer()">
+<video id="video" width="0" height="0" autoplay></video>    
+<canvas id="myCanvas" width="320px" height="240px" style="display:none">myCanvas</canvas>    
+<canvas id="yourCanvas" width="320px" height="240px">yourCanvas</canvas>    
+  
+<input type="text" id="textMessage" size="20" />      
+<input type="button" onclick="sendMessage()" value="Send">     
+<input type="button" onclick="sendphoto()" value="sendphoto">      
+</body>   
+<script type="text/javascript">  
+    var myCanvas=document.getElementById("myCanvas");    
+    var context=myCanvas.getContext('2d');    
+    var imagewidth=myCanvas.width;  
+    var imageheight=myCanvas.height;  
+    var yourCanvas=document.getElementById("yourCanvas");    
+    var context2=yourCanvas.getContext('2d');   
+    // var image = new Image();    
+    // image.src = "nyx.png";    
+    // image.onload = function(){    
+    //     context.drawImage(image,0,0);    
+    //     var imgData=context.getImageData(50,50,200,200);    
+    //     context2.putImageData(imgData,10,260);    
+    //     //ctx.putImageData(imgData,200,260,50,50,100,100);    
+    // };    
+   
+    var ws = null;      
+    function startServer() {      
+        var url = "ws://172.17.122.146:8080/a/b/3";
+        if ('WebSocket' in window) {      
+            ws = new WebSocket(url);      
+        } else if ('MozWebSocket' in window) {      
+            ws = new MozWebSocket(url);      
+        } else {      
+            alert('ee');      
+            return;    
+        }      
+        ws.binaryType = "arraybuffer";  
+        ws.onopen = function() {      
+            alert('Opened!');      
+        };      
+    
+        ws.onmessage = function(event) {   
+            if(event.data instanceof ArrayBuffer){
+                var bytearray = new Uint8Array(event.data);  
+                var tempcanvas = yourCanvas;  
+                tempcanvas.height = imageheight;  
+                tempcanvas.width = imagewidth;  
+                var tempcontext = tempcanvas.getContext('2d');  
+                var imgdata = tempcontext.getImageData(0,0,imagewidth,imageheight);  
+                var imgdatalen = imgdata.data.length;  
+                for(var i=8;i<imgdatalen;i++){  
+                    imgdata.data[i] = bytearray[i];  
+                }  
+                tempcontext.putImageData(imgdata,0,0);  
+                // var img = document.createElement('img');  
+                //     img.height = imageheight;  
+                //     img.width = imagewidth;  
+                //     img.src = tempcanvas.toDataURL();  
+                // var chatdiv=document.getElementById("chatdiv");  
+                // chatdiv.appendChild(img);  
+                // chatdiv.innerHTML ="<br />"+ chatdiv.innerHTML + "<br />";
+            }else{  
+                alert('Receive message: ' + event.data);      
+            }  
+              
+        };      
+        ws.onclose = function() {      
+          alert('Closed!');      
+        }     
+        ws.onerror = function(err){
+            alert(err);  
+        };   
+    }      
+     
+    function sendMessage(){      
+        var textMessage=document.getElementById("textMessage").value;      
+              
+        if(ws!=null&&textMessage!=""){      
+            ws.send(textMessage);      
+        }      
+    }      
+      
+
+var video = document.getElementById('video');
+    navigator.myGetUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia;
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.myGetUserMedia({ video: true },function(localMediaStream){
+        /*并不是每个window都有URL对象,要加上浏览器前缀
+        **video.src=window.URL.createObjectURL(localMediaStream);
+        * */
+        window.URL=window.URL||window.webkitURL||window.mozURL||window.msURL;
+        video.src=window.URL.createObjectURL(localMediaStream);
+        video.play();
+    },function(error){});
+
+
+
+    function sendphoto(){
+        var videoElement = document.getElementById('video');
+        context.drawImage(videoElement, 0, 0, 320, 240);
+
+        imagedata = context.getImageData(0, 0, 320,240);  
+        var canvaspixelarray = imagedata.data;  
+        var canvaspixellen = canvaspixelarray.length;  
+        var bytearray = new Uint8Array(canvaspixellen);  
+        for (var i=0;i<canvaspixellen;++i) {  
+            bytearray[i] = canvaspixelarray[i];  
+        }
+
+        ws.send(bytearray.buffer);
+//        context.fillStyle = '#000000';
+//        context.fillRect(0, 0, imagewidth,imageheight);
+    }  
+</script>    
+</html>   
