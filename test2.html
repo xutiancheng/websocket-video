@@ -49,14 +49,17 @@
     
         ws.onmessage = function(event) {   
             if(event.data instanceof ArrayBuffer){
-                var bytearray = new Uint8Array(event.data);  
+                console.log(event.data);
+                var bytearray = new Uint8ClampedArray(event.data);  
+                console.log(bytearray);
+
                 var tempcanvas = yourCanvas;  
                 tempcanvas.height = imageheight;  
                 tempcanvas.width = imagewidth;  
                 var tempcontext = tempcanvas.getContext('2d');  
                 var imgdata = tempcontext.getImageData(0,0,imagewidth,imageheight);  
                 var imgdatalen = imgdata.data.length;  
-                for(var i=8;i<imgdatalen;i++){  
+                for(var i=0;i<imgdatalen;i++){  
                     imgdata.data[i] = bytearray[i];  
                 }  
                 tempcontext.putImageData(imgdata,0,0);  
@@ -108,14 +111,14 @@ var video = document.getElementById('video');
         context.drawImage(videoElement, 0, 0, 320, 240);
 
         imagedata = context.getImageData(0, 0, 320,240);  
-        var canvaspixelarray = imagedata.data;  
-        var canvaspixellen = canvaspixelarray.length;  
-        var bytearray = new Uint8Array(canvaspixellen);  
-        for (var i=0;i<canvaspixellen;++i) {  
-            bytearray[i] = canvaspixelarray[i];  
-        }
+        // var canvaspixelarray = imagedata.data;  
+        // var canvaspixellen = canvaspixelarray.length;  
+        // var bytearray = new Uint8Array(canvaspixellen);  
+        // for (var i=0;i<canvaspixellen;++i) {  
+        //     bytearray[i] = canvaspixelarray[i];  
+        // }
 
-        ws.send(bytearray.buffer);
+        ws.send(imagedata.data);
 //        context.fillStyle = '#000000';
 //        context.fillRect(0, 0, imagewidth,imageheight);
     }  
